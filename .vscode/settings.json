@@ -1,0 +1,15 @@
+{
+    "ros.distro": "jazzy",
+    "python.autoComplete.extraPaths": [
+        "/home/ws/build/python_pubsub_experiment",
+        "/home/ws/install/python_pubsub_experiment/lib/python3.12/site-packages",
+        "/opt/ros/jazzy/lib/python3.12/site-packages"
+    ],
+    "python.analysis.extraPaths": [
+        "/home/ws/build/python_pubsub_experiment",
+        "/home/ws/install/python_pubsub_experiment/lib/python3.12/site-packages",
+        "/opt/ros/jazzy/lib/python3.12/site-packages"
+    ],
+    "ROS2.distro": "jazzy",
+    "cmake.sourceDirectory": "/home/ws/src/cpp_service_experiment"
+}
