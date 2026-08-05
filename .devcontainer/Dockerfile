@@ -1,4 +1,4 @@
-FROM ros:jazzy
+FROM ros:rolling
 ARG USERNAME=pintaudi
 ARG USER_UID=1000
 ARG USER_GID=$USER_UID
