@@ -114,16 +114,18 @@ private:
     {
       rclcpp::SubscriptionOptions options;
       options.callback_group = sub_callback_group_;
-      point_subscriber_.subscribe(this, "point_topic", sub_qos_profile,
+      point_subscriber_.subscribe(this, "point_topic", rclcpp::QoS(10),
                                   options);
     }
     RCLCPP_INFO(get_logger(), "Subscribed to topic point_topic");
 
     RCLCPP_INFO(get_logger(), "Connecting TimeSynchronizer");
+    // Attach subscribers to the synchronizer so it can begin pairing messages.
     time_synchronizer_->connectInput(time_subscriber_, point_subscriber_);
     RCLCPP_INFO(get_logger(), "Connected TimeSynchronizer");
 
     RCLCPP_INFO(get_logger(), "Registering callback");
+    // Register the synchronized callback that receives both matched messages.
     time_synchronizer_->registerCallback(
         std::bind(&TestTimeSynchronizer::callback, this, std::placeholders::_1,
                   std::placeholders::_2));
@@ -134,19 +136,26 @@ private:
     return CallbackReturn::SUCCESS;
   }
 
+  // Lifecycle transition: inactive -> unconfigured.
+  // Release runtime resources and restore a clean pre-configured state.
   CallbackReturn cleanup(const rclcpp_lifecycle::State &) {
     RCLCPP_INFO(get_logger(), "Cleaning up TestTimeSynchronizer Node");
 
     RCLCPP_INFO(get_logger(), "Resetting TimeSynchronizer");
+    // Drop existing synchronizer state, including internal message queues.
     time_synchronizer_.reset();
     RCLCPP_INFO(get_logger(), "Reset TimeSynchronizer");
 
     RCLCPP_INFO(get_logger(), "Recreating TimeSynchronizer");
-    time_synchronizer_ = std::make_unique<message_filters::TimeSynchronizer<
+    // Recreate the synchronizer so a later configure starts from a clean object.
+    time_synchronizer_ =
+      std::make_unique<message_filters::TimeSynchronizerBase<
+        CustomTimeGetter,
         builtin_interfaces::msg::Time, geometry_msgs::msg::Point>>(10);
     RCLCPP_INFO(get_logger(), "Recreated TimeSynchronizer");
 
     RCLCPP_INFO(get_logger(), "Unsubscribing from topics");
+    // Explicitly unsubscribe to stop incoming traffic while unconfigured.
     time_subscriber_.unsubscribe();
     point_subscriber_.unsubscribe();
     RCLCPP_INFO(get_logger(), "Unsubscribed from topics");
@@ -157,13 +166,17 @@ private:
 public:
   TestTimeSynchronizer()
       : LifecycleNode("test_time_synchronizer"),
+        // MutuallyExclusive guarantees one callback from this group at a time.
         sub_callback_group_(this->create_callback_group(
             rclcpp::CallbackGroupType::MutuallyExclusive)) {
     RCLCPP_INFO(get_logger(), "Creating TestTimeSynchronizer Node");
 
-    time_synchronizer_ = std::make_unique<message_filters::TimeSynchronizer<
+    // Pre-create the synchronizer so lifecycle callbacks can reuse it.
+    time_synchronizer_ = std::make_unique<message_filters::TimeSynchronizerBase<
+      CustomTimeGetter,
         builtin_interfaces::msg::Time, geometry_msgs::msg::Point>>(10);
 
+    // Register lifecycle handlers so transitions call our configure/cleanup code.
     auto configure_cb = [this](const rclcpp_lifecycle::State &state) {
       return this->configure(state);
     };
@@ -179,6 +192,11 @@ public:
 };
 
 int main(int argc, char **argv) {
+  // Standard ROS 2 process lifecycle:
+  // 1) init client library
+  // 2) create executor and node
+  // 3) spin to process callbacks until shutdown
+  // 4) shutdown and exit
   rclcpp::init(argc, argv);
   rclcpp::executors::MultiThreadedExecutor executor;
   auto node = std::make_shared<TestTimeSynchronizer>();
