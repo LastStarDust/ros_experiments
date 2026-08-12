@@ -3,51 +3,110 @@
 #include <rclcpp/rclcpp.hpp>
 #include <rclcpp_lifecycle/lifecycle_node.hpp>
 
+#include <cmath>
+
+#include "message_filters/message_traits.hpp"
 #include "message_filters/subscriber.h"
 #include "message_filters/time_synchronizer.h"
 
-static const rmw_qos_profile_t sub_qos_profile = {
-    RMW_QOS_POLICY_HISTORY_KEEP_LAST,
-    10,
-    RMW_QOS_POLICY_RELIABILITY_RELIABLE,
-    RMW_QOS_POLICY_DURABILITY_TRANSIENT_LOCAL,
-    RMW_QOS_DEADLINE_DEFAULT, // Infinite
-    RMW_QOS_LIFESPAN_DEFAULT, // Infinite
-    RMW_QOS_POLICY_LIVELINESS_AUTOMATIC,
-    RMW_QOS_LIVELINESS_LEASE_DURATION_DEFAULT, // Infinite
-    false};
+// Node purpose:
+// - Demonstrate exact-time synchronization of two ROS 2 topics using
+//   message_filters::TimeSynchronizer.
+// - Subscribe to "time_topic" (builtin_interfaces/Time) and "point_topic"
+//   (geometry_msgs/Point), then process pairs that share the same timestamp.
+//
+// Logic summary:
+// 1) Constructor creates the synchronizer and registers lifecycle hooks.
+// 2) configure() subscribes to both topics, connects them to the synchronizer,
+//    and registers the paired-message callback.
+// 3) callback() runs only when both inputs match exactly in time and logs both
+//    messages.
+// 4) cleanup() tears down subscribers and resets synchronizer state so future
+//    configure transitions start cleanly.
+// 5) main() runs the lifecycle node in a MultiThreadedExecutor.
+//
+// PR #319 demonstration:
+// - The synchronizer below uses TimeSynchronizerBase<CustomTimeGetter, ...>.
+// - This custom getter extracts timestamps from headerless message content.
+// - For this demo, geometry_msgs/Point encodes timestamp as:
+//   point.x -> sec, point.y -> nanosec.
+
+template<typename M>
+struct CustomTimeGetter : message_filters::message_traits::DefaultTimeGetter<M>
+{};
+
+template<>
+struct CustomTimeGetter<builtin_interfaces::msg::Time>
+{
+  static rclcpp::Time getTime(const builtin_interfaces::msg::Time & msg)
+  {
+    return rclcpp::Time(msg.sec, msg.nanosec, RCL_ROS_TIME);
+  }
+};
+
+template<>
+struct CustomTimeGetter<geometry_msgs::msg::Point>
+{
+  static rclcpp::Time getTime(const geometry_msgs::msg::Point & msg)
+  {
+    // Demo convention: point.x carries seconds, point.y carries nanoseconds.
+    // The publisher must provide integer-like values in these fields.
+    const auto sec = static_cast<int32_t>(std::llround(msg.x));
+    const auto nanosec = static_cast<uint32_t>(std::llround(msg.y));
+    return rclcpp::Time(sec, nanosec, RCL_ROS_TIME);
+  }
+};
 
 class TestTimeSynchronizer : public rclcpp_lifecycle::LifecycleNode {
 private:
-  std::unique_ptr<message_filters::TimeSynchronizer<
+  // Synchronizes two input streams by exact timestamp equality.
+  // Queue size (10) controls how many unmatched samples are buffered.
+  // Uses a custom getter to read timestamps from headerless message payloads.
+  std::unique_ptr<message_filters::TimeSynchronizerBase<
+      CustomTimeGetter,
       builtin_interfaces::msg::Time, geometry_msgs::msg::Point>>
       time_synchronizer_;
 
+  // First input stream: messages from "time_topic".
   message_filters::Subscriber<builtin_interfaces::msg::Time,
                               rclcpp_lifecycle::LifecycleNode>
       time_subscriber_;
 
+  // Second input stream: messages from "point_topic".
   message_filters::Subscriber<geometry_msgs::msg::Point,
                               rclcpp_lifecycle::LifecycleNode>
       point_subscriber_;
 
+  // Callback group for subscription callbacks, separated so executor scheduling
+  // can be controlled independently from other potential node callbacks.
   rclcpp::CallbackGroup::SharedPtr sub_callback_group_;
 
+  // Invoked only when both topics provide messages with matching timestamps.
+  // If timestamps do not line up exactly, this callback will not run.
   void callback(const builtin_interfaces::msg::Time::ConstSharedPtr &time,
                 const geometry_msgs::msg::Point::ConstSharedPtr &point) {
+    const auto point_stamp = CustomTimeGetter<geometry_msgs::msg::Point>::getTime(*point);
+
     RCLCPP_INFO(this->get_logger(), "Time: %d.%d", time->sec, time->nanosec);
     RCLCPP_INFO(this->get_logger(), "Point: x=%f, y=%f, z=%f", point->x,
                 point->y, point->z);
+    RCLCPP_INFO(this->get_logger(),
+          "Custom point stamp interpreted as: %d.%u",
+          point_stamp.seconds(),
+          point_stamp.nanoseconds() % 1000000000ULL);
   }
 
+  // Lifecycle transition: unconfigured -> inactive.
+  // This is where subscriptions and synchronizer wiring are established.
   CallbackReturn configure(const rclcpp_lifecycle::State &) {
     RCLCPP_INFO(get_logger(), "Configuring TestTimeSynchronizer Node");
 
     RCLCPP_INFO(get_logger(), "Subscribing to topic time_topic");
     {
+      // Subscription options let us assign this subscriber to our callback group.
       rclcpp::SubscriptionOptions options;
       options.callback_group = sub_callback_group_;
-      time_subscriber_.subscribe(this, "time_topic", sub_qos_profile, options);
+      time_subscriber_.subscribe(this, "time_topic", rclcpp::QoS(10), options);
     }
     RCLCPP_INFO(get_logger(), "Subscribed to topic time_topic");
 
