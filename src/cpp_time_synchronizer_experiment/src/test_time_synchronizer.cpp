@@ -4,10 +4,11 @@
 #include <rclcpp_lifecycle/lifecycle_node.hpp>
 
 #include <cmath>
+#include <cstdint>
 
 #include "message_filters/message_traits.hpp"
-#include "message_filters/subscriber.h"
-#include "message_filters/time_synchronizer.h"
+#include "message_filters/subscriber.hpp"
+#include "message_filters/time_synchronizer.hpp"
 
 // Node purpose:
 // - Demonstrate exact-time synchronization of two ROS 2 topics using
@@ -57,25 +58,21 @@ struct CustomTimeGetter<geometry_msgs::msg::Point>
   }
 };
 
-class TestTimeSynchronizer : public rclcpp_lifecycle::LifecycleNode {
+class TestTimeSynchronizer : public rclcpp_lifecycle::LifecycleNode
+{
 private:
   // Synchronizes two input streams by exact timestamp equality.
   // Queue size (10) controls how many unmatched samples are buffered.
   // Uses a custom getter to read timestamps from headerless message payloads.
-  std::unique_ptr<message_filters::TimeSynchronizerBase<
-      CustomTimeGetter,
-      builtin_interfaces::msg::Time, geometry_msgs::msg::Point>>
+  std::unique_ptr<
+      message_filters::TimeSynchronizerBase<CustomTimeGetter, builtin_interfaces::msg::Time, geometry_msgs::msg::Point>>
       time_synchronizer_;
 
   // First input stream: messages from "time_topic".
-  message_filters::Subscriber<builtin_interfaces::msg::Time,
-                              rclcpp_lifecycle::LifecycleNode>
-      time_subscriber_;
+  message_filters::Subscriber<builtin_interfaces::msg::Time> time_subscriber_;
 
   // Second input stream: messages from "point_topic".
-  message_filters::Subscriber<geometry_msgs::msg::Point,
-                              rclcpp_lifecycle::LifecycleNode>
-      point_subscriber_;
+  message_filters::Subscriber<geometry_msgs::msg::Point> point_subscriber_;
 
   // Callback group for subscription callbacks, separated so executor scheduling
   // can be controlled independently from other potential node callbacks.
