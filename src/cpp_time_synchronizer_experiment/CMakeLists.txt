@@ -26,12 +26,6 @@ find_package(rclcpp_lifecycle REQUIRED)
 find_package(message_filters REQUIRED)
 find_package(geometry_msgs REQUIRED)
 
-set(AMENT_DEPENDENCIES
-    "rclcpp"
-    "rclcpp_lifecycle"
-    "message_filters"
-    "geometry_msgs")
-
 # ##################################################################################################
 # Add compiler options
 # ##################################################################################################
@@ -45,7 +39,12 @@ endif()
 # ##################################################################################################
 
 add_executable(test_time_synchronizer "src/test_time_synchronizer.cpp")
-ament_target_dependencies(test_time_synchronizer ${AMENT_DEPENDENCIES})
+target_link_libraries(test_time_synchronizer
+  rclcpp::rclcpp
+  rclcpp_lifecycle::rclcpp_lifecycle
+  message_filters::message_filters
+  geometry_msgs::geometry_msgs
+)
 
 # ##################################################################################################
 # Install targets
