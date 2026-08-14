@@ -32,23 +32,24 @@
 // - For this demo, geometry_msgs/Point encodes timestamp as:
 //   point.x -> sec, point.y -> nanosec.
 
-template<typename M>
+template <typename M>
 struct CustomTimeGetter : message_filters::message_traits::DefaultTimeGetter<M>
-{};
+{
+};
 
-template<>
+template <>
 struct CustomTimeGetter<builtin_interfaces::msg::Time>
 {
-  static rclcpp::Time getTime(const builtin_interfaces::msg::Time & msg)
+  static rclcpp::Time getTime(const builtin_interfaces::msg::Time& msg)
   {
     return rclcpp::Time(msg.sec, msg.nanosec, RCL_ROS_TIME);
   }
 };
 
-template<>
+template <>
 struct CustomTimeGetter<geometry_msgs::msg::Point>
 {
-  static rclcpp::Time getTime(const geometry_msgs::msg::Point & msg)
+  static rclcpp::Time getTime(const geometry_msgs::msg::Point& msg)
   {
     // Demo convention: point.x carries seconds, point.y carries nanoseconds.
     // The publisher must provide integer-like values in these fields.
@@ -80,22 +81,21 @@ private:
 
   // Invoked only when both topics provide messages with matching timestamps.
   // If timestamps do not line up exactly, this callback will not run.
-  void callback(const builtin_interfaces::msg::Time::ConstSharedPtr &time,
-                const geometry_msgs::msg::Point::ConstSharedPtr &point) {
+  void callback(const builtin_interfaces::msg::Time::ConstSharedPtr& time,
+                const geometry_msgs::msg::Point::ConstSharedPtr& point)
+  {
     const auto point_stamp = CustomTimeGetter<geometry_msgs::msg::Point>::getTime(*point);
 
     RCLCPP_INFO(this->get_logger(), "Time: %d.%d", time->sec, time->nanosec);
-    RCLCPP_INFO(this->get_logger(), "Point: x=%f, y=%f, z=%f", point->x,
-                point->y, point->z);
-    RCLCPP_INFO(this->get_logger(),
-          "Custom point stamp interpreted as: %d.%u",
-          point_stamp.seconds(),
-          point_stamp.nanoseconds() % 1000000000ULL);
+    RCLCPP_INFO(this->get_logger(), "Point: x=%f, y=%f, z=%f", point->x, point->y, point->z);
+    RCLCPP_INFO(this->get_logger(), "Custom point stamp interpreted as: %.0f.%09llu", point_stamp.seconds(),
+                static_cast<unsigned long long>(point_stamp.nanoseconds() % 1000000000ULL));
   }
 
   // Lifecycle transition: unconfigured -> inactive.
   // This is where subscriptions and synchronizer wiring are established.
-  CallbackReturn configure(const rclcpp_lifecycle::State &) {
+  CallbackReturn configure(const rclcpp_lifecycle::State&)
+  {
     RCLCPP_INFO(get_logger(), "Configuring TestTimeSynchronizer Node");
 
     RCLCPP_INFO(get_logger(), "Subscribing to topic time_topic");
@@ -111,8 +111,7 @@ private:
     {
       rclcpp::SubscriptionOptions options;
       options.callback_group = sub_callback_group_;
-      point_subscriber_.subscribe(this, "point_topic", rclcpp::QoS(10),
-                                  options);
+      point_subscriber_.subscribe(this, "point_topic", rclcpp::QoS(10), options);
     }
     RCLCPP_INFO(get_logger(), "Subscribed to topic point_topic");
 
@@ -124,8 +123,7 @@ private:
     RCLCPP_INFO(get_logger(), "Registering callback");
     // Register the synchronized callback that receives both matched messages.
     time_synchronizer_->registerCallback(
-        std::bind(&TestTimeSynchronizer::callback, this, std::placeholders::_1,
-                  std::placeholders::_2));
+        std::bind(&TestTimeSynchronizer::callback, this, std::placeholders::_1, std::placeholders::_2));
     RCLCPP_INFO(get_logger(), "Registered callback");
 
     RCLCPP_INFO(get_logger(), "Configured TestTimeSynchronizer Node");
@@ -135,7 +133,8 @@ private:
 
   // Lifecycle transition: inactive -> unconfigured.
   // Release runtime resources and restore a clean pre-configured state.
-  CallbackReturn cleanup(const rclcpp_lifecycle::State &) {
+  CallbackReturn cleanup(const rclcpp_lifecycle::State&)
+  {
     RCLCPP_INFO(get_logger(), "Cleaning up TestTimeSynchronizer Node");
 
     RCLCPP_INFO(get_logger(), "Resetting TimeSynchronizer");
@@ -146,9 +145,8 @@ private:
     RCLCPP_INFO(get_logger(), "Recreating TimeSynchronizer");
     // Recreate the synchronizer so a later configure starts from a clean object.
     time_synchronizer_ =
-      std::make_unique<message_filters::TimeSynchronizerBase<
-        CustomTimeGetter,
-        builtin_interfaces::msg::Time, geometry_msgs::msg::Point>>(10);
+        std::make_unique<message_filters::TimeSynchronizerBase<CustomTimeGetter, builtin_interfaces::msg::Time,
+                                                               geometry_msgs::msg::Point>>(10);
     RCLCPP_INFO(get_logger(), "Recreated TimeSynchronizer");
 
     RCLCPP_INFO(get_logger(), "Unsubscribing from topics");
@@ -162,24 +160,21 @@ private:
 
 public:
   TestTimeSynchronizer()
-      : LifecycleNode("test_time_synchronizer"),
-        // MutuallyExclusive guarantees one callback from this group at a time.
-        sub_callback_group_(this->create_callback_group(
-            rclcpp::CallbackGroupType::MutuallyExclusive)) {
+    : LifecycleNode("test_time_synchronizer")
+    ,
+    // MutuallyExclusive guarantees one callback from this group at a time.
+    sub_callback_group_(this->create_callback_group(rclcpp::CallbackGroupType::MutuallyExclusive))
+  {
     RCLCPP_INFO(get_logger(), "Creating TestTimeSynchronizer Node");
 
     // Pre-create the synchronizer so lifecycle callbacks can reuse it.
-    time_synchronizer_ = std::make_unique<message_filters::TimeSynchronizerBase<
-      CustomTimeGetter,
-        builtin_interfaces::msg::Time, geometry_msgs::msg::Point>>(10);
+    time_synchronizer_ =
+        std::make_unique<message_filters::TimeSynchronizerBase<CustomTimeGetter, builtin_interfaces::msg::Time,
+                                                               geometry_msgs::msg::Point>>(10);
 
     // Register lifecycle handlers so transitions call our configure/cleanup code.
-    auto configure_cb = [this](const rclcpp_lifecycle::State &state) {
-      return this->configure(state);
-    };
-    auto cleanup_cb = [this](const rclcpp_lifecycle::State &state) {
-      return this->cleanup(state);
-    };
+    auto configure_cb = [this](const rclcpp_lifecycle::State& state) { return this->configure(state); };
+    auto cleanup_cb = [this](const rclcpp_lifecycle::State& state) { return this->cleanup(state); };
 
     this->register_on_configure(configure_cb);
     this->register_on_cleanup(cleanup_cb);
@@ -188,7 +183,8 @@ public:
   }
 };
 
-int main(int argc, char **argv) {
+int main(int argc, char** argv)
+{
   // Standard ROS 2 process lifecycle:
   // 1) init client library
   // 2) create executor and node
