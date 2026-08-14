@@ -1,15 +1,44 @@
 {
-    "ros.distro": "jazzy",
+    "ros.distro": "rolling",
+    "ROS2.distro": "rolling",
+    "C_Cpp.default.intelliSenseMode": "linux-gcc-x64",
+    "C_Cpp.default.compilerPath": "/usr/bin/g++",
+    "C_Cpp.default.cppStandard": "c++17",
+    "C_Cpp.default.configurationProvider": "ms-vscode.cmake-tools",
+    "C_Cpp.default.compileCommands": "${workspaceFolder}/build/cpp_time_synchronizer_experiment/compile_commands.json",
+    "C_Cpp.default.includePath": [
+        "${workspaceFolder}/src/**",
+        "${workspaceFolder}/src/message_filters_pr319/include/**",
+        "${workspaceFolder}/install/include/message_filters/**",
+        "${workspaceFolder}/install/**/include/**",
+        "/opt/ros/rolling/include/**",
+        "/usr/include/**"
+    ],
     "python.autoComplete.extraPaths": [
         "/home/ws/build/python_pubsub_experiment",
-        "/home/ws/install/python_pubsub_experiment/lib/python3.12/site-packages",
-        "/opt/ros/jazzy/lib/python3.12/site-packages"
+        "/home/ws/install/python_pubsub_experiment/lib/python3.14/site-packages",
+        "/opt/ros/rolling/lib/python3.14/site-packages"
     ],
     "python.analysis.extraPaths": [
         "/home/ws/build/python_pubsub_experiment",
-        "/home/ws/install/python_pubsub_experiment/lib/python3.12/site-packages",
-        "/opt/ros/jazzy/lib/python3.12/site-packages"
+        "/home/ws/install/python_pubsub_experiment/lib/python3.14/site-packages",
+        "/opt/ros/rolling/lib/python3.14/site-packages"
     ],
-    "ROS2.distro": "jazzy",
-    "cmake.sourceDirectory": "/home/ws/src/cpp_service_experiment"
+    "cmake.sourceDirectory": "/home/ws/src/cpp_time_synchronizer_experiment",
+    "cmake.buildDirectory": "/home/ws/build/cpp_time_synchronizer_experiment",
+    "cmake.configureSettings": {
+        "message_filters_DIR": "/home/ws/install/share/message_filters/cmake"
+    },
+    "cmake.configureEnvironment": {
+        "CMAKE_PREFIX_PATH": "/home/ws/install:/opt/ros/rolling:${env:CMAKE_PREFIX_PATH}",
+        "AMENT_PREFIX_PATH": "/home/ws/install:/opt/ros/rolling:${env:AMENT_PREFIX_PATH}",
+        "COLCON_PREFIX_PATH": "/home/ws/install:/opt/ros/rolling:${env:COLCON_PREFIX_PATH}",
+        "PYTHONPATH": "/home/ws/install/lib/python3.14/site-packages:/opt/ros/rolling/lib/python3.14/site-packages:${env:PYTHONPATH}"
+    },
+    "cmake.buildEnvironment": {
+        "CMAKE_PREFIX_PATH": "/home/ws/install:/opt/ros/rolling:${env:CMAKE_PREFIX_PATH}",
+        "AMENT_PREFIX_PATH": "/home/ws/install:/opt/ros/rolling:${env:AMENT_PREFIX_PATH}",
+        "COLCON_PREFIX_PATH": "/home/ws/install:/opt/ros/rolling:${env:COLCON_PREFIX_PATH}",
+        "PYTHONPATH": "/home/ws/install/lib/python3.14/site-packages:/opt/ros/rolling/lib/python3.14/site-packages:${env:PYTHONPATH}"
+    }
 }

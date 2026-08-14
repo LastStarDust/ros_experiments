@@ -3,17 +3,28 @@
     {
       "browse": {
         "databaseFilename": "${workspaceFolder}/.vscode/browse.vc.db",
-        "limitSymbolsToIncludedHeaders": false
+        "limitSymbolsToIncludedHeaders": false,
+        "path": [
+          "${workspaceFolder}/src",
+          "${workspaceFolder}/install",
+          "/opt/ros/rolling/include",
+          "/usr/include"
+        ]
       },
       "includePath": [
-        "/opt/ros/jazzy/include/**",
+        "${workspaceFolder}/src/**",
+        "${workspaceFolder}/src/message_filters_pr319/include/**",
+        "${workspaceFolder}/install/include/message_filters/**",
+        "${workspaceFolder}/install/**/include/**",
+        "/opt/ros/rolling/include/**",
         "/usr/include/**"
       ],
-      "name": "ros2",
-      "intelliSenseMode": "gcc-x64",
-      "compilerPath": "/usr/bin/gcc",
+      "name": "ros2-jazzy",
+      "intelliSenseMode": "linux-gcc-x64",
+      "compilerPath": "/usr/bin/g++",
       "cStandard": "gnu11",
-      "cppStandard": "c++17"
+      "cppStandard": "c++17",
+      "compileCommands": "${workspaceFolder}/build/cpp_time_synchronizer_experiment/compile_commands.json"
     }
   ],
   "version": 4
