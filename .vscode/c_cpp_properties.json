@@ -15,6 +15,8 @@
         "${workspaceFolder}/src/**",
         "${workspaceFolder}/src/message_filters_pr319/include/**",
         "${workspaceFolder}/install/include/message_filters/**",
+        "${workspaceFolder}/build/cpp_time_synchronizer_experiment/rosidl_generator_cpp/**",
+        "${workspaceFolder}/build/colcon/cpp_time_synchronizer_experiment/rosidl_generator_cpp/**",
         "${workspaceFolder}/install/**/include/**",
         "/opt/ros/rolling/include/**",
         "/usr/include/**"
