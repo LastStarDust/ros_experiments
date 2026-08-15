@@ -24,7 +24,13 @@ find_package(rclcpp REQUIRED)
 find_package(ament_cmake REQUIRED)
 find_package(rclcpp_lifecycle REQUIRED)
 find_package(message_filters REQUIRED)
-find_package(geometry_msgs REQUIRED)
+find_package(rosidl_default_generators REQUIRED)
+find_package(rosidl_typesupport_cpp REQUIRED)
+
+rosidl_generate_interfaces(${PROJECT_NAME}
+  "msg/SensorA.msg"
+  "msg/SensorB.msg"
+)
 
 # ##################################################################################################
 # Add compiler options
@@ -43,8 +49,10 @@ target_link_libraries(test_time_synchronizer
   rclcpp::rclcpp
   rclcpp_lifecycle::rclcpp_lifecycle
   message_filters::message_filters
-  geometry_msgs::geometry_msgs
 )
+
+rosidl_get_typesupport_target(cpp_typesupport_target ${PROJECT_NAME} "rosidl_typesupport_cpp")
+target_link_libraries(test_time_synchronizer "${cpp_typesupport_target}")
 
 # ##################################################################################################
 # Install targets
