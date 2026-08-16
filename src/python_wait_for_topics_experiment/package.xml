@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
 <package format="3">
-  <name>python_wait_for_topics_trigger_experiment</name>
+  <name>python_wait_for_topics_experiment</name>
   <version>0.0.0</version>
   <description>Experiment package showcasing WaitForTopics trigger callback in launch_testing_ros integration tests.</description>
   <maintainer email="pintaudi@axelspace.com">pintaudi</maintainer>
@@ -17,9 +17,6 @@
   <depend>turtlesim</depend>
   <depend>turtlesim_msgs</depend>
 
-  <test_depend>ament_copyright</test_depend>
-  <test_depend>ament_flake8</test_depend>
-  <test_depend>ament_pep257</test_depend>
   <test_depend>python3-pytest</test_depend>
 
   <export>

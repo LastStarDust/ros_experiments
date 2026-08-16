@@ -1,6 +1,6 @@
 from setuptools import find_packages, setup
 
-package_name = 'python_wait_for_topics_trigger_experiment'
+package_name = 'python_wait_for_topics_experiment'
 
 setup(
     name=package_name,
@@ -12,13 +12,6 @@ setup(
             ['resource/' + package_name]
         ),
         ('share/' + package_name, ['package.xml']),
-        (
-            'share/' + package_name + '/launch',
-            [
-                'launch/launch_experiment.py',
-                'launch/launch_turtlesim_experiment.py',
-            ],
-        ),
     ],
     install_requires=['setuptools'],
     zip_safe=True,
@@ -29,9 +22,5 @@ setup(
         'launch_testing_ros integration tests.'
     ),
     license='Apache-2.0',
-    entry_points={
-        'console_scripts': [
-            f'repeater = {package_name}.repeater:main',
-        ],
-    },
+    entry_points={},
 )

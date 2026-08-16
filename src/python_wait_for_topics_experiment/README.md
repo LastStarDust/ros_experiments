@@ -1,4 +1,4 @@
-# python_wait_for_topics_trigger_experiment
+# python_wait_for_topics_experiment
 
 This package demonstrates how to use `launch_testing_ros.WaitForTopics` with the
 `trigger` callback in a turtlesim integration-test scenario.
@@ -21,8 +21,8 @@ documentation updates.
 From the workspace root:
 
 ```bash
-colcon build --packages-select python_wait_for_topics_trigger_experiment
-colcon test --packages-select python_wait_for_topics_trigger_experiment
+colcon build --packages-select python_wait_for_topics_experiment
+colcon test --packages-select python_wait_for_topics_experiment
 colcon test-result --verbose
 ```
 
@@ -36,5 +36,3 @@ The turtlesim launch test in `test/test_turtlesim_wait_for_topics_launch.py`:
 - verifies that at least one received pose reports non-zero velocity
 - checks the spawn log and process exit codes
 
-The repeater trigger example remains in
-`test/test_wait_for_topics_trigger_launch.py` as a minimal non-turtlesim pattern.
