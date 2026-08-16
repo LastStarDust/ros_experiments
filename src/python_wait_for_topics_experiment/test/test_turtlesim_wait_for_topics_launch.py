@@ -61,9 +61,6 @@ def trigger_publish_twist(node: Node, linear_x: float, angular_z: float) -> None
         if info.current_count > 0:
             matched_event.set()
 
-    if hasattr(node, "cmd_vel_publisher"):
-        node.destroy_publisher(node.cmd_vel_publisher)
-
     node.cmd_vel_publisher = node.create_publisher(
         Twist,
         "turtle1/cmd_vel",
