@@ -43,5 +43,6 @@
         "COLCON_PREFIX_PATH": "/home/ws/install:/opt/ros/rolling:${env:COLCON_PREFIX_PATH}",
         "PYTHONPATH": "/home/ws/install/lib/python3.14/site-packages:/opt/ros/rolling/lib/python3.14/site-packages:${env:PYTHONPATH}"
     },
-    "cmake.ignoreCMakeListsMissing": true
+    "cmake.ignoreCMakeListsMissing": true,
+    "python-envs.defaultEnvManager": "ms-python.python:system"
 }
